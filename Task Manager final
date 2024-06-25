@@ -1,0 +1,24 @@
+Features:
+1- Category Creation:
+Users can create tasks categories by entering a name for each category.
+This will help them to stay organized and help them easily access each task in each category 
+2-Task Creation:
+Users can create new tasks by entering a title or description for each task. They can also set deadlines, priorities, or add additional details as needed.
+3- Task Listing:
+Display a list of all tasks and also tasks in a category with their titles, descriptions and due dates for easy reference.Tasks are usually organized in a list format,
+4-Editing and Deletion: 
+Users can edit or update task details, such as modifying the task title, changing due dates, or updating descriptions. Additionally, users can delete tasks and categories if they are no longer relevant or necessary.
+5- Notifications:
+To help users stay organized and on top of their tasks, the app can provide reminders or send notifications whenever a new task and a new category is created
+6- Completion:
+ Users can mark tasks as completed when they finish them. This helps users track their progress and visualize the remaining tasks.
+7- Change username: 
+Users can change the default user name by the name of their choice.
+8- Data Persistence: Save tasks locally on the device to ensure they are retained between app sessions.
+
+Group Members
+1.Yonas Zekariyas                 UGR/25332/14
+2.Yonas Adane                     UGR/25464/14   
+3.Hanamariam Mesfin               UGR/25483/14
+4.Etsehiwot Mengistu              UGR/25562/14
+5.Abuzer Jemal                    UGR/25351/14

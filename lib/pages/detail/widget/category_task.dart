@@ -51,6 +51,16 @@ class CategoryTask extends StatelessWidget {
                 child: ListTile(
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  leading: Checkbox(
+                    value: task.isDone,
+                    onChanged: (bool? value) {
+                      if (value != null) {
+                        task.isDone = value;
+                        taskBox.put(task.key, task);
+                        updateCategory(task.category, value);
+                      }
+                    },
+                  ),
                   title: Text(
                     task.title,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -75,11 +85,22 @@ class CategoryTask extends StatelessWidget {
                       ),
                     ],
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      deleteTaskAndUpdateCategory(task, index);
-                    },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          showEditTaskDialog(context, task);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          deleteTaskAndUpdateCategory(task, index);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -112,6 +133,25 @@ class CategoryTask extends StatelessWidget {
     );
   }
 
+  void updateCategory(String? categoryTitle, bool isChecked) {
+    if (categoryTitle == null) return;
+
+    final categoryIndex =
+        categoriesBox.values.toList().indexWhere((category) => category.title == categoryTitle);
+
+    if (categoryIndex != -1) {
+      final category = categoriesBox.getAt(categoryIndex);
+      if (category != null) {
+        final updatedCategory = Category(
+          title: category.title,
+          left: category.left,
+          done: isChecked ? (category.done ?? 0) + 1 : (category.done ?? 0) - 1,
+        );
+        categoriesBox.putAt(categoryIndex, updatedCategory);
+      }
+    }
+  }
+
   void deleteTaskAndUpdateCategory(Task task, int index) {
     final bool isTaskDone = task.isDone ?? false;
 
@@ -134,5 +174,116 @@ class CategoryTask extends StatelessWidget {
       }
     }
     taskBox.deleteAt(index);
+  }
+
+  void showEditTaskDialog(BuildContext context, Task task) {
+    TextEditingController titleController = TextEditingController(text: task.title);
+    TextEditingController descriptionController = TextEditingController(text: task.description);
+    DateTime? selectedDeadline = task.deadline;
+    DateTime? selectedStartedTime = task.startedTime;
+    String? selectedCategory = task.category;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Task"),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: "Title"),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: "Description"),
+                ),
+                const SizedBox(height: 10),
+                const Text("Deadline"),
+                ElevatedButton(
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDeadline ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2101),
+                    );
+                    if (pickedDate != null) {
+                      selectedDeadline = pickedDate;
+                    }
+                  },
+                  child: Text(selectedDeadline != null
+                      ? DateFormat.yMMMd().format(selectedDeadline!)
+                      : "Pick a deadline"),
+                ),
+                const SizedBox(height: 10),
+                const Text("Started Time"),
+                ElevatedButton(
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: selectedStartedTime ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2101),
+                    );
+                    if (pickedDate != null) {
+                      selectedStartedTime = pickedDate;
+                    }
+                  },
+                  child: Text(selectedStartedTime != null
+                      ? DateFormat.yMMMd().format(selectedStartedTime!)
+                      : "Pick a start time"),
+                ),
+                const SizedBox(height: 10),
+                const Text("Category"),
+                ValueListenableBuilder(
+                  valueListenable: categoriesBox.listenable(),
+                  builder: (context, Box<Category> box, _) {
+                    List<String> categories = box.values.map((c) => c.title).toList();
+                    return DropdownButton<String>(
+                      value: selectedCategory,
+                      hint: const Text("Select category"),
+                      onChanged: (newValue) {
+                        selectedCategory = newValue;
+                      },
+                      items: categories.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                task.updateTask(
+                  title: titleController.text,
+                  description: descriptionController.text,
+                  category: selectedCategory,
+                  deadline: selectedDeadline,
+                  startedTime: selectedStartedTime,
+                );
+                task.save();
+                Navigator.of(context).pop();
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
